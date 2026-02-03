@@ -2,104 +2,123 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 function EditProfile() {
-  const [profile, setProfile] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
-
+  const [profile, setProfile] = useState({ name: "", email: "", password: "", _id: "" });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Get user from localStorage
     const savedUser = JSON.parse(localStorage.getItem("user"));
     if (savedUser) {
-      setProfile(savedUser);
+      setProfile({
+        name: savedUser.name || "",
+        email: savedUser.email || "",
+        password: "",
+        _id: savedUser._id,
+      });
+    } else {
+      navigate("/login");
     }
-  }, []);
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setProfile((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setProfile((prev) => ({ ...prev, [name]: value }));
+    setMessage(null);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setMessage(null);
 
-    fetch("http://localhost:5000/edit-profile", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(profile),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          alert("Profile updated successfully!");
-          localStorage.setItem("user", JSON.stringify(profile)); // update local storage
-          navigate("/dashboard");
-        } else {
-          alert(data.message);
-        }
-      })
-      .catch((err) => alert("Server error: " + err.message));
+    try {
+      const res = await fetch("http://localhost:5000/edit-profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profile),
+      });
+
+      // 🔒 SAFE RESPONSE HANDLING
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Request failed");
+      }
+
+      const data = await res.json();
+
+      if (data.success) {
+        const updatedUser = {
+          _id: profile._id,
+          name: profile.name,
+          email: profile.email,
+        };
+
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+
+        setMessage({ type: "success", text: "Profile updated successfully!" });
+        setTimeout(() => navigate("/dashboard"), 1200);
+      } else {
+        setMessage({ type: "error", text: data.message || "Update failed." });
+      }
+    } catch (err) {
+      console.error("Edit profile error:", err);
+      setMessage({ type: "error", text: "Server error. Please try again." });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="max-w-md mx-auto mt-8 bg-white shadow-lg p-6 rounded-xl">
-      <h2 className="text-2xl font-bold mb-4 text-center text-gray-800">
-        Edit Profile
-      </h2>
+      <h2 className="text-2xl font-bold mb-4 text-center">Edit Profile</h2>
+
+      {message && (
+        <p
+          className={`text-center mb-4 font-medium ${
+            message.type === "success" ? "text-green-600" : "text-red-600"
+          }`}
+        >
+          {message.text}
+        </p>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-600 mb-1">
-            Full Name
-          </label>
-          <input
-            type="text"
-            name="name"
-            value={profile.name}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
-            required
-          />
-        </div>
+        <input
+          type="text"
+          name="name"
+          value={profile.name}
+          onChange={handleChange}
+          placeholder="Full Name"
+          required
+          className="w-full px-4 py-2 border rounded"
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-600 mb-1">
-            Email
-          </label>
-          <input
-            type="email"
-            name="email"
-            value={profile.email}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
-            required
-          />
-        </div>
+        <input
+          type="email"
+          name="email"
+          value={profile.email}
+          onChange={handleChange}
+          placeholder="Email"
+          required
+          className="w-full px-4 py-2 border rounded"
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-600 mb-1">
-            Password
-          </label>
-          <input
-            type="password"
-            name="password"
-            value={profile.password}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
-            required
-          />
-        </div>
+        <input
+          type="password"
+          name="password"
+          value={profile.password}
+          onChange={handleChange}
+          placeholder="Leave blank to keep current password"
+          className="w-full px-4 py-2 border rounded"
+        />
 
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-medium"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-2 rounded disabled:opacity-60"
         >
-          Save Changes
+          {loading ? "Saving..." : "Save Changes"}
         </button>
       </form>
     </div>

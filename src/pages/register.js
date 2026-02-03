@@ -10,14 +10,15 @@ function Register() {
   });
 
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({ ...formData, [e.target.name]: e.target.value.trimStart() });
     setError("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const { name, email, password, confirmPassword } = formData;
 
@@ -30,33 +31,41 @@ function Register() {
       return;
     }
 
-    // Call backend API
-    fetch("http://localhost:5000/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          alert("Registration successful!");
-          navigate("/login");
-        } else {
-          setError(data.message);
-        }
-      })
-      .catch((err) => setError("Server error: " + err.message));
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("http://localhost:5000/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        alert("Registration successful! Please login.");
+        navigate("/login");
+      } else {
+        setError(data.message || "Registration failed.");
+      }
+    } catch (err) {
+      console.error("Registration error:", err);
+      setError("Server error. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+    <div className="flex justify-center items-center min-h-screen bg-gray-50 px-4">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-lg shadow-md w-full max-w-md space-y-4"
+        className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md space-y-5 border border-gray-200"
       >
-        <h2 className="text-2xl font-bold text-center">Register</h2>
+        <h2 className="text-3xl font-bold text-center text-blue-600">Register</h2>
 
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
         <input
           type="text"
@@ -64,7 +73,8 @@ function Register() {
           placeholder="Full Name"
           value={formData.name}
           onChange={handleChange}
-          className="w-full p-2 border rounded"
+          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
+          required
         />
         <input
           type="email"
@@ -72,7 +82,8 @@ function Register() {
           placeholder="Email"
           value={formData.email}
           onChange={handleChange}
-          className="w-full p-2 border rounded"
+          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
+          required
         />
         <input
           type="password"
@@ -80,7 +91,8 @@ function Register() {
           placeholder="Password"
           value={formData.password}
           onChange={handleChange}
-          className="w-full p-2 border rounded"
+          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
+          required
         />
         <input
           type="password"
@@ -88,14 +100,18 @@ function Register() {
           placeholder="Confirm Password"
           value={formData.confirmPassword}
           onChange={handleChange}
-          className="w-full p-2 border rounded"
+          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
+          required
         />
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+          disabled={loading}
+          className={`w-full py-3 rounded-lg font-semibold text-white transition ${
+            loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+          }`}
         >
-          Register
+          {loading ? "Registering..." : "Register"}
         </button>
 
         <p className="text-sm text-center mt-2">

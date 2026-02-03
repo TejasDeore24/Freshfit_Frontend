@@ -1,36 +1,83 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Loader2, MapPin, Package, Building2, ClipboardCheck } from "lucide-react";
+import {
+  Loader2,
+  MapPin,
+  Package,
+  Building2,
+  ClipboardCheck,
+} from "lucide-react";
 
 function DonationDetails() {
-  const { id } = useParams();
+  const { id } = useParams(); // donation _id
+
   const [donation, setDonation] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/donation/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) setDonation(data.donation);
-      })
-      .catch((err) => console.log(err));
+    const fetchDonation = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/donation/${id}`);
+
+        // ✅ prevent JSON parse crash
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || "Failed to fetch donation");
+        }
+
+        const data = await res.json();
+
+        if (data.success) {
+          setDonation(data.donation);
+        } else {
+          setError("Donation not found.");
+        }
+      } catch (err) {
+        console.error("Error fetching donation:", err);
+        setError("Failed to load donation details.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDonation();
   }, [id]);
 
-  if (!donation)
+  // ======================
+  // LOADING STATE
+  // ======================
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin w-10 h-10 text-blue-500" />
       </div>
     );
+  }
 
-  // Determine status progress percentage
+  // ======================
+  // ERROR STATE
+  // ======================
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-screen text-red-500 font-semibold">
+        {error}
+      </div>
+    );
+  }
+
+  if (!donation) return null;
+
+  // ======================
+  // STATUS HELPERS
+  // ======================
   const getStatusPercentage = (status) => {
     switch (status) {
       case "Approved":
-        return 100;
       case "Rejected":
         return 100;
-      default: // Pending
-        return 50;
+      default:
+        return 50; // Pending
     }
   };
 
@@ -45,39 +92,48 @@ function DonationDetails() {
     }
   };
 
+  // ======================
+  // RENDER
+  // ======================
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12 px-4">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-4xl font-extrabold mb-8 text-center text-gray-800 tracking-tight">
+        <h1 className="text-4xl font-extrabold mb-8 text-center text-gray-800">
           Donation Details
         </h1>
 
-        <div className="bg-white shadow-xl rounded-2xl p-8 space-y-6 transition transform hover:scale-[1.01] duration-300">
-          {/* Category */}
+        <div className="bg-white shadow-xl rounded-2xl p-8 space-y-6">
+          {/* CATEGORY */}
           <div className="flex items-center justify-between border-b pb-3">
             <div className="flex items-center gap-2">
               <Package className="w-5 h-5 text-blue-500" />
               <span className="font-semibold text-gray-700">Category</span>
             </div>
-            <span className="text-gray-900 font-medium">{donation.category}</span>
+            <span className="text-gray-900 font-medium">
+              {donation.category || "N/A"}
+            </span>
           </div>
 
-          {/* Quantity */}
+          {/* QUANTITY */}
           <div className="flex items-center justify-between border-b pb-3">
             <div className="flex items-center gap-2">
               <ClipboardCheck className="w-5 h-5 text-green-500" />
               <span className="font-semibold text-gray-700">Quantity</span>
             </div>
-            <span className="text-gray-900 font-medium">{donation.quantity}</span>
+            <span className="text-gray-900 font-medium">
+              {donation.quantity || "N/A"}
+            </span>
           </div>
 
-          {/* Address */}
+          {/* ADDRESS */}
           <div className="flex items-center justify-between border-b pb-3">
             <div className="flex items-center gap-2">
               <MapPin className="w-5 h-5 text-red-500" />
               <span className="font-semibold text-gray-700">Address</span>
             </div>
-            <span className="text-gray-900 font-medium">{donation.address}</span>
+            <span className="text-gray-900 font-medium">
+              {donation.address || "N/A"}
+            </span>
           </div>
 
           {/* NGO */}
@@ -91,17 +147,23 @@ function DonationDetails() {
             </span>
           </div>
 
-          {/* Status */}
+          {/* STATUS */}
           <div className="pt-3">
-            <span className="font-semibold text-gray-700 flex items-center gap-2 mb-2">
+            <span className="font-semibold text-gray-700 mb-2 block">
               Status
             </span>
-            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
+
+            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
               <div
-                className={`${statusColor(donation.status)} h-4 rounded-full transition-all duration-500`}
-                style={{ width: `${getStatusPercentage(donation.status)}%` }}
-              ></div>
+                className={`${statusColor(
+                  donation.status
+                )} h-4 rounded-full transition-all duration-500`}
+                style={{
+                  width: `${getStatusPercentage(donation.status)}%`,
+                }}
+              />
             </div>
+
             <p
               className={`mt-2 font-semibold text-sm ${
                 donation.status === "Approved"

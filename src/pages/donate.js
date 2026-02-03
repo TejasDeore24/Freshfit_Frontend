@@ -14,16 +14,15 @@ function Donate() {
   const [submitted, setSubmitted] = useState(false);
   const [user, setUser] = useState(null);
 
-  // Load logged-in user info
+  // Load logged-in user info and fetch NGOs
   useEffect(() => {
     const loggedInUser = JSON.parse(localStorage.getItem("user"));
     if (loggedInUser) setUser(loggedInUser);
 
-    // Fetch NGOs from backend
     fetch("http://localhost:5000/ngos")
       .then(res => res.json())
       .then(data => {
-        if (data.success) setNgos(data.ngos);
+        if (data.success) setNgos(data.ngos); // Make sure backend returns _id
       })
       .catch(() => setMessage("Error fetching NGOs."));
   }, []);
@@ -37,10 +36,10 @@ function Donate() {
     setPhoto(e.target.files[0]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!user) {
+    if (!user || !user._id) {
       setMessage("You must be logged in to donate.");
       return;
     }
@@ -57,30 +56,32 @@ function Donate() {
       return;
     }
 
-    // Use FormData to send file + text
+    // Prepare FormData
     const donationData = new FormData();
-    donationData.append("user_id", user.id);
-    donationData.append("ngo_id", formData.ngo_id);
+    donationData.append("user_id", user._id); // ✅ use _id from MongoDB
+    donationData.append("ngo_id", formData.ngo_id); // ✅ ensure this is Mongo _id
     donationData.append("category", formData.category);
     donationData.append("quantity", formData.quantity);
     donationData.append("address", formData.address);
     donationData.append("notes", formData.notes);
     donationData.append("photo", photo);
 
-    fetch("http://localhost:5000/donate", {
-      method: "POST",
-      body: donationData, // no need for headers (browser sets automatically)
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          setSubmitted(true);
-          setMessage("Donation submitted successfully!");
-        } else {
-          setMessage(data.message || "Error submitting donation.");
-        }
-      })
-      .catch(() => setMessage("Server error. Please try again."));
+    try {
+      const res = await fetch("http://localhost:5000/donate", {
+        method: "POST",
+        body: donationData,
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setSubmitted(true);
+        setMessage("Donation submitted successfully!");
+      } else {
+        setMessage(data.message || "Error submitting donation.");
+      }
+    } catch (err) {
+      setMessage("Server error. Please try again.");
+    }
   };
 
   const handleDonateMore = () => {
@@ -134,12 +135,13 @@ function Donate() {
           >
             <option value="">Select NGO</option>
             {ngos.map((ngo) => (
-              <option key={ngo.id} value={ngo.id}>
+              <option key={ngo._id} value={ngo._id}>
                 {ngo.name}
               </option>
             ))}
           </select>
 
+          {/* Category Dropdown */}
           <select
             name="category"
             value={formData.category}
@@ -184,7 +186,6 @@ function Donate() {
             rows="2"
           />
 
-          {/* 📸 Photo Upload */}
           <input
             type="file"
             accept="image/*"

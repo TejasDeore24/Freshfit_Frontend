@@ -1,4 +1,4 @@
-// src/ngo/register.js
+// src/ngo/RegisterNgo.js
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -7,36 +7,35 @@ export default function RegisterNgo() {
   const [form, setForm] = useState({
     name: "",
     email: "",
-    password: "",
-    confirmPassword: "",
     phone: "",
     address: "",
     description: "",
+    password: "",
+    confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState({ type: "", text: "" });
 
-  const onChange = (e) => {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const handleChange = (e) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setMsg({ type: "", text: "" });
   };
 
   const validate = () => {
     const { name, email, password, confirmPassword, phone, address } = form;
-    if (!name || !email || !password || !confirmPassword || !phone || !address) {
+    if (!name || !email || !password || !confirmPassword || !phone || !address)
       return "Please fill in all required fields.";
-    }
     if (!/^\S+@\S+\.\S+$/.test(email)) return "Please enter a valid email.";
     if (password.length < 6) return "Password must be at least 6 characters.";
     if (password !== confirmPassword) return "Passwords do not match.";
-    if (!/^\d{7,15}$/.test(phone)) return "Phone must be 7–15 digits.";
+    if (!/^\d{7,15}$/.test(phone)) return "Phone number must be 7–15 digits.";
     return null;
-    };
+  };
 
-  const onSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const err = validate();
-    if (err) return setMsg({ type: "error", text: err });
+    const error = validate();
+    if (error) return setMsg({ type: "error", text: error });
 
     try {
       setLoading(true);
@@ -46,35 +45,38 @@ export default function RegisterNgo() {
         body: JSON.stringify({
           name: form.name,
           email: form.email,
-          password: form.password,
           phone: form.phone,
           address: form.address,
           description: form.description,
+          password: form.password,
         }),
       });
+
       const data = await res.json();
 
       if (!res.ok || !data.success) {
         throw new Error(data.message || "Registration failed.");
       }
 
-      setMsg({ type: "success", text: "Registration successful! Redirecting to login…" });
-      // optional: remember we are working in NGO mode
+      setMsg({ type: "success", text: "Registration successful! Redirecting…" });
       localStorage.setItem("mode", "ngo");
-      setTimeout(() => navigate("/ngo-login"), 1000);
-    } catch (e2) {
-      setMsg({ type: "error", text: e2.message });
+
+      setTimeout(() => navigate("/ngo-login"), 1200);
+    } catch (err) {
+      setMsg({ type: "error", text: err.message });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow p-8">
-        <h1 className="text-3xl font-bold text-center mb-2">Register your NGO</h1>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-lg bg-white rounded-2xl shadow-lg p-8">
+        <h1 className="text-3xl font-bold text-center mb-2 text-green-600">
+          Register Your NGO
+        </h1>
         <p className="text-center text-gray-600 mb-6">
-          Create an NGO account to manage donations and pickups.
+          Create an NGO account to manage donations and volunteers.
         </p>
 
         {msg.text && (
@@ -87,15 +89,15 @@ export default function RegisterNgo() {
           </div>
         )}
 
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm text-gray-700 mb-1">NGO Name *</label>
             <input
               name="name"
               value={form.name}
-              onChange={onChange}
-              className="w-full border rounded-lg px-3 py-2"
+              onChange={handleChange}
               placeholder="e.g., Helping Hands Foundation"
+              className="w-full border rounded-lg px-3 py-2"
             />
           </div>
 
@@ -106,9 +108,9 @@ export default function RegisterNgo() {
                 type="email"
                 name="email"
                 value={form.email}
-                onChange={onChange}
-                className="w-full border rounded-lg px-3 py-2"
+                onChange={handleChange}
                 placeholder="contact@ngo.org"
+                className="w-full border rounded-lg px-3 py-2"
               />
             </div>
             <div>
@@ -116,9 +118,9 @@ export default function RegisterNgo() {
               <input
                 name="phone"
                 value={form.phone}
-                onChange={onChange}
-                className="w-full border rounded-lg px-3 py-2"
+                onChange={handleChange}
                 placeholder="9876543210"
+                className="w-full border rounded-lg px-3 py-2"
               />
             </div>
           </div>
@@ -128,22 +130,22 @@ export default function RegisterNgo() {
             <textarea
               name="address"
               value={form.address}
-              onChange={onChange}
-              className="w-full border rounded-lg px-3 py-2"
-              rows="2"
+              onChange={handleChange}
               placeholder="Full postal address"
+              rows="2"
+              className="w-full border rounded-lg px-3 py-2"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-700 mb-1">About / Description</label>
+            <label className="block text-sm text-gray-700 mb-1">Description</label>
             <textarea
               name="description"
               value={form.description}
-              onChange={onChange}
-              className="w-full border rounded-lg px-3 py-2"
+              onChange={handleChange}
+              placeholder="Briefly describe your NGO"
               rows="3"
-              placeholder="What does your NGO do?"
+              className="w-full border rounded-lg px-3 py-2"
             />
           </div>
 
@@ -154,9 +156,9 @@ export default function RegisterNgo() {
                 type="password"
                 name="password"
                 value={form.password}
-                onChange={onChange}
-                className="w-full border rounded-lg px-3 py-2"
+                onChange={handleChange}
                 placeholder="Minimum 6 characters"
+                className="w-full border rounded-lg px-3 py-2"
               />
             </div>
             <div>
@@ -165,17 +167,17 @@ export default function RegisterNgo() {
                 type="password"
                 name="confirmPassword"
                 value={form.confirmPassword}
-                onChange={onChange}
-                className="w-full border rounded-lg px-3 py-2"
+                onChange={handleChange}
                 placeholder="Re-enter password"
+                className="w-full border rounded-lg px-3 py-2"
               />
             </div>
           </div>
 
           <button
-            disabled={loading}
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium disabled:opacity-60"
+            disabled={loading}
+            className="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg font-medium disabled:opacity-60"
           >
             {loading ? "Creating account…" : "Create NGO Account"}
           </button>
@@ -190,7 +192,7 @@ export default function RegisterNgo() {
 
         <p className="text-xs text-center text-gray-500 mt-2">
           Are you a donor?{" "}
-          <Link to=".\pages\register.js" className="underline">
+          <Link to="/register" className="underline">
             Register as Donator
           </Link>
         </p>

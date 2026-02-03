@@ -5,6 +5,7 @@ function NGOLogin({ setIsLoggedIn }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,12 +18,14 @@ function NGOLogin({ setIsLoggedIn }) {
   }, [navigate, setIsLoggedIn]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({ ...formData, [e.target.name]: e.target.value.trimStart() });
     setMessage("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setMessage("");
 
     try {
       const res = await fetch("http://localhost:5000/ngo/login", {
@@ -36,24 +39,26 @@ function NGOLogin({ setIsLoggedIn }) {
       setIsSuccess(data.success);
 
       if (data.success && data.ngo) {
-        // ✅ Store all NGO details properly
+        // Store NGO details properly
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("mode", "ngo");
         localStorage.setItem("ngo", JSON.stringify(data.ngo));
-        localStorage.setItem("ngoId", data.ngo.id || data.ngo.ngo_id); // <-- Added line
+        localStorage.setItem("ngoId", data.ngo.id || data.ngo.ngo_id);
 
         setIsLoggedIn(true);
         navigate("/ngo-dashboard");
       }
     } catch (err) {
       console.error("Login error:", err);
-      setMessage("An error occurred while logging in. Please try again.");
+      setMessage("Server error. Please try again.");
       setIsSuccess(false);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-50">
+    <div className="flex justify-center items-center min-h-screen bg-gray-50 px-4">
       <form
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md space-y-5 border border-gray-200"
@@ -92,9 +97,12 @@ function NGOLogin({ setIsLoggedIn }) {
 
         <button
           type="submit"
-          className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+          disabled={loading}
+          className={`w-full py-3 rounded-lg font-semibold text-white transition ${
+            loading ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
+          }`}
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
 
         <p className="text-sm text-right mt-1">
