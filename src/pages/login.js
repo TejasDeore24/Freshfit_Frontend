@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+const API_URL = process.env.Backend_Url || "http://localhost:5000";;
 
 function UserLogin({ setIsLoggedIn }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -36,7 +37,7 @@ function UserLogin({ setIsLoggedIn }) {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/login", {
+      const res = await fetch(`${API_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
