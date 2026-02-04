@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import API_URL from "../config";
 
 function EditProfile() {
   const [profile, setProfile] = useState({ name: "", email: "", password: "", _id: "" });
@@ -33,7 +34,7 @@ function EditProfile() {
     setMessage(null);
 
     try {
-      const res = await fetch("http://localhost:5000/edit-profile", {
+      const res = await fetch(`${API_URL}/edit-profile`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profile),

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { CheckCircle, Building2, Loader2 } from "lucide-react";
+import API_URL from "../config";
 
-const API_BASE = "http://localhost:5000";
+ 
 
 function JoinNgo() {
   const [ngos, setNgos] = useState([]);
@@ -17,7 +18,7 @@ function JoinNgo() {
   useEffect(() => {
     const fetchNgos = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/ngos`);
+        const res = await axios.get(` ${API_URL}/ngos`);
 
         if (res.data.success) {
           setNgos(res.data.ngos);
@@ -47,7 +48,7 @@ function JoinNgo() {
         return;
       }
 
-      const res = await axios.post(`${API_BASE}/volunteer/join`, {
+      const res = await axios.post(`${API_URL}/volunteer/join`, {
         userId: user._id,
         ngoId,
       });

@@ -7,6 +7,7 @@ import {
   Building2,
   ClipboardCheck,
 } from "lucide-react";
+import API_URL from "../config";
 
 function DonationDetails() {
   const { id } = useParams(); // donation _id
@@ -18,7 +19,7 @@ function DonationDetails() {
   useEffect(() => {
     const fetchDonation = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/donation/${id}`);
+        const res = await fetch(`${API_URL}/donation/${id}`);
 
         // ✅ prevent JSON parse crash
         if (!res.ok) {

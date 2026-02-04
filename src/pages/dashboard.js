@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import API_URL from "../config";
 
 function Dashboard() {
   const [user, setUser] = useState(null);
@@ -18,7 +19,7 @@ function Dashboard() {
 
     const fetchDonations = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/donations?userId=${savedUser._id}`);
+        const res = await fetch(`${API_URL}/donations?userId=${savedUser._id}`);
         if (!res.ok) throw new Error("Failed to fetch donations");
         const data = await res.json();
         if (data.success) {

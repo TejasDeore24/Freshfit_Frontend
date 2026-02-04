@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Loader2, XCircle } from "lucide-react";
+import API_URL from "../config";
 
 function MyVolunteerRequests() {
   const [requests, setRequests] = useState([]);
@@ -41,7 +42,7 @@ function MyVolunteerRequests() {
 
     try {
       const res = await axios.delete(
-        `http://localhost:5000/volunteer/${requestId}/cancel`
+        `${API_URL}/volunteer/${requestId}/cancel`
       );
 
       if (res.data.success) {

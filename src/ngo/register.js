@@ -1,6 +1,7 @@
 // src/ngo/RegisterNgo.js
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import API_URL from "../config";
 
 export default function RegisterNgo() {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ export default function RegisterNgo() {
 
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:5000/ngo/register", {
+      const res = await fetch(`${API_URL}/ngo/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

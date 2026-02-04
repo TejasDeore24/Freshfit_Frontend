@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-const API_URL = process.env.Backend_Url || "http://localhost:5000";;
+// const API_URL = process.env.Backend_Url || "http://localhost:5000";;
 
+const API_URL =process.env.REACT_APP_API_URL || "http://localhost:5000";
 function UserLogin({ setIsLoggedIn }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
@@ -105,9 +106,8 @@ function UserLogin({ setIsLoggedIn }) {
         <button
           type="submit"
           disabled={loading}
-          className={`w-full py-3 rounded-lg font-semibold text-white transition ${
-            loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-          }`}
+          className={`w-full py-3 rounded-lg font-semibold text-white transition ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+            }`}
         >
           {loading ? "Logging in..." : "Login"}
         </button>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import API_URL from "../config";
 
 function Donate() {
   const [formData, setFormData] = useState({
@@ -67,7 +68,7 @@ function Donate() {
     donationData.append("photo", photo);
 
     try {
-      const res = await fetch("http://localhost:5000/donate", {
+      const res = await fetch( `${API_URL}/donate`, {
         method: "POST",
         body: donationData,
       });

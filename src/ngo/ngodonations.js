@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import API_URL from "../config";
 
 const NgoDonations = () => {
   const [ngo, setNgo] = useState(null);
@@ -18,7 +19,7 @@ const NgoDonations = () => {
 
     const fetchDonations = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/ngo/${loggedNgo._id}/donations`);
+        const res = await fetch(`${API_URL}/ngo/${loggedNgo._id}/donations`);
         const data = await res.json();
         if (data.success) setDonations(data.donations || []);
         else setError("Failed to fetch donations.");
@@ -36,7 +37,7 @@ const NgoDonations = () => {
   // Update donation status
   const handleStatusChange = async (donationId, newStatus) => {
     try {
-      const res = await fetch(`http://localhost:5000/donations/${donationId}/status`, {
+      const res = await fetch(`${API_URL}/donations/${donationId}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),

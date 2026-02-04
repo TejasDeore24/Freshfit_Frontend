@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Loader2, Users, RefreshCw } from "lucide-react";
+import API_URL from "../config";
 
 function VolunteersList() {
   const [volunteers, setVolunteers] = useState([]);
@@ -18,7 +19,7 @@ function VolunteersList() {
     }
     setLoading(true);
     try {
-      const res = await axios.get(`http://localhost:5000/ngo/${ngoId}/volunteers`);
+      const res = await axios.get(`${API_URL}/ngo/${ngoId}/volunteers`);
       if (res.data.success) setVolunteers(res.data.volunteers);
       else setError("Failed to fetch volunteers.");
     } catch (err) {
