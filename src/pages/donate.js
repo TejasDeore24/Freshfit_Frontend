@@ -20,7 +20,7 @@ function Donate() {
     const loggedInUser = JSON.parse(localStorage.getItem("user"));
     if (loggedInUser) setUser(loggedInUser);
 
-    fetch("http://localhost:5000/ngos")
+    fetch(`${API_URL}/ngos`)
       .then(res => res.json())
       .then(data => {
         if (data.success) setNgos(data.ngos); // Make sure backend returns _id
